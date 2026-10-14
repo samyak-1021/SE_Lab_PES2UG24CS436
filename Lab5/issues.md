@@ -4,7 +4,7 @@
 **SRN:** PES2UG24CS436
 **Assigned repo:** [L5_02_retail_pos](https://github.com/SETAPESU26/L5_02_retail_pos) (`pos_system.py`)
 
-Line numbers are from the original file (`reports/before/` has the raw tool output).
+Line numbers are from the original file (`before/` has the original code and raw tool output, `after/` has the fixed version).
 
 ## Score summary
 
