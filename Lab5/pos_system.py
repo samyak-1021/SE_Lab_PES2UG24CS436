@@ -1,11 +1,16 @@
 import json
-import random
+import itertools
 import logging
+import operator
+import re
 
 # Global state
 price_list = {"pen": 10, "notebook": 45, "bag": 799, "bottle": 150}
 sales_total = 0
 receipt_lines = []
+receipt_ids = itertools.count(1001)
+promo_pattern = re.compile(r"^\s*total\s*([*-])\s*(\d+(?:\.\d+)?)\s*$")
+promo_ops = {"*": operator.mul, "-": operator.sub}
 
 def process_checkout(cart_items, tax_rate=0.05, receipts=[]):
     global sales_total
@@ -18,20 +23,23 @@ def process_checkout(cart_items, tax_rate=0.05, receipts=[]):
     total = subtotal + subtotal * tax_rate
     receipts.append(total)
     sales_total += total
-    receipt_lines.append("Receipt #%d total=%.2f" % (random.randint(1000, 9999), total))
+    receipt_lines.append("Receipt #%d total=%.2f" % (next(receipt_ids), total))
     return total
 
 def apply_promo_code(code_str):
     # promo codes look like "total * 0.9" or "total - 50"
-    total = sales_total
-    return eval(code_str)
+    match = promo_pattern.match(code_str)
+    if not match:
+        raise ValueError("Invalid promo code: " + code_str)
+    op, amount = match.groups()
+    return promo_ops[op](sales_total, float(amount))
 
 def update_stock(item, qty):
-    try:
-        price_list[item] = price_list[item]
-        print("Stock updated for", item, "by", qty)
-    except Exception:
-        pass
+    if item not in price_list:
+        print("Cannot update stock, unknown item:", item)
+        return
+    price_list[item] = price_list[item]
+    print("Stock updated for", item, "by", qty)
 
 def save_receipt_log(file="pos_log.txt"):
     f = open(file, "a")
