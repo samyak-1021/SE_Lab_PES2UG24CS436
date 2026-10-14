@@ -1,6 +1,4 @@
-import json
 import itertools
-import logging
 import operator
 import re
 
@@ -9,8 +7,11 @@ price_list = {"pen": 10, "notebook": 45, "bag": 799, "bottle": 150}
 sales_total = 0
 receipt_lines = []
 receipt_ids = itertools.count(1001)
-promo_pattern = re.compile(r"^\s*total\s*([*-])\s*(\d+(?:\.\d+)?)\s*$")
+promo_pattern = re.compile(
+    r"^\s*total\s*([*-])\s*(\d+(?:\.\d+)?)\s*$"
+)
 promo_ops = {"*": operator.mul, "-": operator.sub}
+
 
 def process_checkout(cart_items, tax_rate=0.05, receipts=[]):
     global sales_total
@@ -18,13 +19,16 @@ def process_checkout(cart_items, tax_rate=0.05, receipts=[]):
     for item in cart_items:
         try:
             subtotal = subtotal + price_list[item[0]] * item[1]
-        except:
+        except (KeyError, TypeError):
             subtotal = subtotal + 0
     total = subtotal + subtotal * tax_rate
     receipts.append(total)
     sales_total += total
-    receipt_lines.append("Receipt #%d total=%.2f" % (next(receipt_ids), total))
+    receipt_lines.append(
+        "Receipt #%d total=%.2f" % (next(receipt_ids), total)
+    )
     return total
+
 
 def apply_promo_code(code_str):
     # promo codes look like "total * 0.9" or "total - 50"
@@ -34,6 +38,7 @@ def apply_promo_code(code_str):
     op, amount = match.groups()
     return promo_ops[op](sales_total, float(amount))
 
+
 def update_stock(item, qty):
     if item not in price_list:
         print("Cannot update stock, unknown item:", item)
@@ -41,13 +46,16 @@ def update_stock(item, qty):
     price_list[item] = price_list[item]
     print("Stock updated for", item, "by", qty)
 
+
 def save_receipt_log(file="pos_log.txt"):
     f = open(file, "a")
     for line in receipt_lines:
         f.write(line + "\n")
 
+
 def printSales():
     print("Sales so far: " + str(sales_total))
+
 
 def main():
     print("Bill 1:", process_checkout([("pen", 3), ("notebook", 2)]))
@@ -60,5 +68,6 @@ def main():
     print("After your promo:", apply_promo_code(code))
     save_receipt_log()
     printSales()
+
 
 main()
